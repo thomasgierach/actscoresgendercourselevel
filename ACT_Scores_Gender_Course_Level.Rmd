@@ -1,0 +1,114 @@
+---
+title: "STAT_481_Project_2"
+author: "Thomas Gierach"
+date: "5/1/2020"
+output: word_document
+---
+
+
+```{r, echo=TRUE}
+library(MASS)
+mth <- read.csv("MathTest.csv")
+str(mth)
+summary(mth)
+mth$gender <- as.factor(mth$gender)
+mth$courses <- as.factor(mth$courses)
+
+#Histogram of Scores
+hist(mth$score, col = "yellow2", main = "Histogram of ACT Scores", xlab = "ACT Scores")
+
+require(graphics)
+#Pie Charts
+y<- c("blue","red","yellow")
+z <- c("purple","orange")
+labels1 <- c("Algebra", "Geometry", "Calculus")
+labels2 <- c("Women", "Men")
+par(mfrow=c(1,2))
+pie(table(mth$gender),col=z, main = "Participants by Gender", labels = labels2)
+pie(table(mth$courses),col=y, main = "Participants by Course Level", labels = labels1)
+
+#Box Plots
+plot(mth$score~mth$gender, col = z, main = "ACT Scores by Gender", names = labels2, xlab = "", ylab = "ACT Scores")
+plot(mth$score~mth$courses, col = y, main = "ACT Scores by Course Level", names= labels1, xlab = "", ylab = "ACT Scores")
+
+#Bar Plots
+barplot(table(mth$gender,mth$courses),col= z,main = "Gender vs Course Level",xlab = "Courses",ylab="# of participants", names.arg= labels1)
+legend("topleft", labels2, fill  = z, horiz = T, cex = 0.55,)
+
+lmfit <- lm(score ~ gender * courses, mth)
+summary(lmfit)
+anova(lmfit)
+
+par(mfrow=c(2,2))
+# residual plot
+plot(lmfit, 1)    # residual vs fitted value
+plot(lmfit, 2)    #  QQ-plot 
+plot(lmfit, 3)    # sqrt(|standardized residual|) vs FItted value
+plot(lmfit, 4)    # cook's distance
+
+## Normality Check
+par(mfrow=c(1,1))
+qqnorm(lmfit$residual)
+qqline(lmfit$residual)
+shapiro.test(lmfit$residual)
+
+## Equal Variance Check (top left corner)
+par(mfrow=c(2,2))
+plot(lmfit)
+
+## Linearity Check
+# par(mfrow=c(3,3))
+# plot(x = mth$score, y = lmfit$residual, col = "red")
+# abline(h=0)
+# plot(x = mth$gender, y = lmfit$residual, col = "blue")
+# abline(h=0)
+
+
+## VIF Check
+library(car)
+vif(lmfit)
+
+## Independence Check (Durbin-Watson): Not required since not time-series data
+library(MASS)
+dwtest(lmfit, alternative = "two.sided")
+#now set up a new sequence of interaction
+
+interaction.plot(mth$courses, mth$gender, mth$score)
+
+lmfit2 <- lm(score ~ gender + courses, mth)
+summary(lmfit2)
+anova(lmfit2)
+
+## Normality Check
+par(mfrow=c(1,1))
+qqnorm(lmfit2$residual)
+qqline(lmfit2$residual)
+shapiro.test(lmfit2$residual)
+
+## Equal Variance Check (top left corner)
+par(mfrow=c(2,2))
+plot(lmfit2)
+
+## Linearity Check
+# par(mfrow=c(3,3))
+# plot(x = mth$gender, y = lmfit$residual, col = "red")
+# abline(h=0)
+# plot(x = mth$sodium, y = lmfit$residual, col = "blue")
+# abline(h=0)
+
+## VIF Check
+library(car)
+vif(lmfit2)
+
+## Independence Check (Durbin-Watson): Not required since not time-series data
+dwtest(lmfit2, alternative = "two.sided")
+#now set up a new sequence of interaction
+
+attach(mth)
+row.mean <- tapply(score, gender, mean)
+col.mean <- tapply(score, courses, mean)
+row.mean
+col.mean
+```
+
+
